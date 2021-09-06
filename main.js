@@ -1,8 +1,13 @@
 rightwristX = 0;
 rightwristY = 0;
 score_rightwrist = "";
+game_status = '';
 
 
+function start_game(){
+  game_status = "start";
+  document.getElementById("status").innerHTML = "Game is Loaded";
+}
 var paddle2 =10,paddle1=10;
 
 var paddle1X = 10,paddle1Height = 110;
@@ -22,7 +27,11 @@ var ball = {
     dx:3,
     dy:3
 }
-
+function restart(){
+  pcscore = 0;
+  playerscore =0;
+  loop();
+}
 function setup(){
   canvas =  createCanvas(700,600);
   canvas.parent('canvas');
@@ -30,6 +39,10 @@ function setup(){
   video.size(600,300)
   posenet = ml5.poseNet(video,modelLoaded);
   posenet.on('pose',gotPoses);
+}
+function preload(){
+  ball_touch_paddle = loadSound("ball_touch_paddle.wav");
+  miss = loadSound("missed.wav")
 }
 function modelLoaded(){
   console.log('model is loaded');
@@ -43,10 +56,12 @@ function gotPoses(results){
   }
 }
 function draw(){
-if (score_rightwrist > 0.2){
-  fill('magenta');
-  stroke('pink');
-  circle(rightwristX,rightwristY,50);
+  if (game_status == "start"){
+    if (score_rightwrist > 0.2){
+      fill('magenta');
+      stroke('pink');
+      circle(rightwristX,rightwristY,50);
+  }
 }
  background(0); 
 
@@ -61,26 +76,25 @@ if (score_rightwrist > 0.2){
  
    paddleInCanvas();
  
-  
+
    fill(250,0,0);
     stroke(0,0,250);
     strokeWeight(0.5);
-   paddle1Y = mouseY; 
+   paddle1Y = rightwristY; 
    rect(paddle1X,paddle1Y,paddle1,paddle1Height,100);
    
    
-  
+
     fill("#FFA500");
     stroke("#FFA500");
    var paddle2y =ball.y-paddle2Height/2;  rect(paddle2Y,paddle2y,paddle2,paddle2Height,100);
     
-   
+
     midline();
-    
-   
+
    drawScore();
    
-   
+ 
    models();
    
   
@@ -97,6 +111,7 @@ function reset(){
    ball.dy =3;
    
 }
+
 
 
 function midline(){
@@ -136,11 +151,13 @@ function move(){
   if (ball.x-2.5*ball.r/2< 0){
   if (ball.y >= paddle1Y&& ball.y <= paddle1Y + paddle1Height) {
     ball.dx = -ball.dx+0.5; 
+    ball_touch_paddle.play()
   }
   else{
     pcscore++;
     reset();
     navigator.vibrate(100);
+    miss.play();
   }
 }
 if(pcscore ==4){
@@ -151,7 +168,7 @@ if(pcscore ==4){
     stroke("white");
     textSize(25)
     text("Game Over!☹☹",width/2,height/2);
-    text("Reload The Page!",width/2,height/2+30)
+    text("Press Restart button to play again!",width/2,height/2+30)
     noLoop();
     pcscore = 0;
 }
